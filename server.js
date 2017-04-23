@@ -54,14 +54,16 @@ http.createServer(function serverFile(req, res) {
     res.end('Unauthorized');
     return;
   }
+  var urlParts = url.parse(req.url, true),
+          urlParams = urlParts.query, 
+          uri = urlParts.pathname;
 
-  if(req.url === '/'){
-    req.url = '/index.html';
-  } else if(req.url.substr(0, 3) === '/v2') {
-    // avoid fileExists for /v2 routes
+  if(uri === '/'){
+    uri = '/index.html';
+  } else if(uri.substr(0, 3) === '/v2') {
+      // avoid fileExists for /v2 routes
     return proxy(req, res);
   }
-  var uri = url.parse(req.url).pathname;
   var filename = path.join(process.cwd(), publicDir, uri);
 
   fs.exists(filename, function(exists) {
@@ -103,11 +105,17 @@ function proxy(client_req, client_res) {
         client_req.pipe(requester(opts, function(res) {
             console.log('Got response: ' + res.statusCode);
             res.pipe(client_res, {end: true});
-        }, {end: true}));
+        }, {end: true}).on('error', function(e){
+            console.error("Failed to pipe request",e)
+          })
+        );
     } else {
         res.pipe(client_res, {end: true});
     }
-  }, {end: true}));
+  }, {end: true}).on('error', function(e){
+      console.error(e)
+    })
+  );
 }
 
 

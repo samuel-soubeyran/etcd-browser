@@ -5,7 +5,13 @@ app.controller('NodeCtrl', ['$scope','$http','$cookies', function($scope,$http,$
   var keyPrefix = '/v2/keys',
       statsPrefix = '/v2/stats';
 
-  if($cookies.urlPrefix){
+  var args = location.search.substring(1).split("&").reduce(function(r, p) {
+    r[decodeURIComponent(p.split("=")[0])] = decodeURIComponent(p.split("=")[1]); return r;
+  }, {});
+
+  if (args['url']) {
+    $scope.urlPrefix = args['url'];
+  } else if($cookies.urlPrefix){
     $scope.urlPrefix = $cookies.urlPrefix;
   } else {
     $scope.urlPrefix = ('https:' == document.location.protocol ? 'https://' : 'http://') + document.location.host;
